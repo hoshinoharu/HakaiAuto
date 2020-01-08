@@ -29,12 +29,16 @@ public class BhProcessor extends AbstractProcessor {
     Map<String, TypeSpec.Builder> clsNameCache = new LinkedHashMap<>();
     Filer filer;
     File cacheRes;
+    int idBase ;
+    int idIndex ;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
         filer = processingEnv.getFiler();
         created = false;
+        idBase = new Random().nextInt(10000) + 10000 ;
+        idIndex = 0 ;
         try {
             FileObject resource = filer.createResource(StandardLocation.SOURCE_OUTPUT, "", "cache.json");
             File file = new File(resource.toUri());
@@ -68,9 +72,9 @@ public class BhProcessor extends AbstractProcessor {
 
                     String methodName = e.getMethodName();
                     //将方法名称转为对应字段
-                    clsBuilder.addField(FieldSpec.builder(TypeName.LONG, methodName, Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                    clsBuilder.addField(FieldSpec.builder(TypeName.INT, methodName, Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
                             .addJavadoc("@see $L#$L()", e.getFullClassName(), e.getMethodName())
-                            .initializer("$LL", getId())
+                            .initializer("$L", getId())
                             .build());
                 }
 
@@ -134,7 +138,7 @@ public class BhProcessor extends AbstractProcessor {
         return SourceVersion.RELEASE_8;
     }
 
-    private long getId() {
-        return System.nanoTime();
+    private int getId() {
+        return idBase + idIndex++;
     }
 }
